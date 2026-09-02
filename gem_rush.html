@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Gem Rush — Gemstone Match</title>
+<style>
+:root{
+  --bg1:#120d2b; --bg2:#261050; --panel:rgba(255,255,255,.10);
+  --text:#fff; --muted:#c9c2e8; --accent:#8ff7ff;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{
+  margin:0; min-height:100vh; font-family:system-ui,-apple-system,Segoe UI,sans-serif;
+  color:var(--text); background:radial-gradient(circle at 50% 0%,#452178 0,#1c123c 42%,#0b0820 100%);
+  overflow-x:hidden;
+}
+.app{width:min(100%,520px);margin:auto;padding:14px 14px 30px}
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.logo{font-weight:900;letter-spacing:.8px;font-size:21px}
+.logo span{color:var(--accent)}
+.stats{display:flex;gap:8px}
+.pill{background:var(--panel);border:1px solid rgba(255,255,255,.12);padding:7px 10px;border-radius:14px;font-size:12px}
+.screen{display:none}.screen.active{display:block}
+.card{
+  background:linear-gradient(145deg,rgba(255,255,255,.13),rgba(255,255,255,.055));
+  border:1px solid rgba(255,255,255,.12); border-radius:25px; padding:16px;
+  box-shadow:0 18px 55px rgba(0,0,0,.28); backdrop-filter:blur(12px);
+}
+.hero{text-align:center;padding:28px 18px}
+.hero .crystal{font-size:76px;filter:drop-shadow(0 0 25px #8ff7ff)}
+h1{font-size:36px;margin:8px 0 3px} h2{margin:5px 0 12px}
+p{color:var(--muted);line-height:1.45}
+button{
+  border:0;color:#160d30;font-weight:850;background:linear-gradient(135deg,#9fffff,#cda7ff);
+  padding:13px 17px;border-radius:16px;font-size:15px;cursor:pointer;box-shadow:0 8px 22px rgba(145,150,255,.2);
+}
+button.secondary{background:rgba(255,255,255,.10);color:white;border:1px solid rgba(255,255,255,.12)}
+button:active{transform:scale(.96)}
+.bigbtn{width:100%;margin-top:10px;padding:16px}
+.menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.mode{padding:16px;text-align:left;min-height:108px}
+.mode b{display:block;font-size:16px;margin-bottom:5px}.mode small{color:var(--muted)}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+#board{
+  display:grid;grid-template-columns:repeat(6,1fr);gap:6px;
+  touch-action:manipulation;
+}
+.gem{
+  aspect-ratio:1;border-radius:13px;display:grid;place-items:center;font-size:25px;
+  background:linear-gradient(145deg,rgba(255,255,255,.18),rgba(255,255,255,.06));
+  border:1px solid rgba(255,255,255,.13);box-shadow:inset 0 1px 0 rgba(255,255,255,.2);
+  transition:.15s transform,.15s opacity;
+}
+.gem.selected{transform:scale(.88);outline:3px solid #fff;box-shadow:0 0 22px currentColor}
+.gem.pop{transform:scale(1.25);opacity:0}
+.timerbar{height:8px;background:rgba(255,255,255,.1);border-radius:99px;overflow:hidden;margin:7px 0 13px}
+#timerFill{height:100%;width:100%;background:linear-gradient(90deg,#8ff7ff,#d39cff);transition:width .1s linear}
+.info{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:10px}
+.combo{height:25px;text-align:center;font-weight:900;color:#fff}
+.overlay{
+  position:fixed;inset:0;background:rgba(7,4,19,.78);display:none;align-items:center;justify-content:center;padding:22px;z-index:20
+}
+.overlay.show{display:flex}.modal{text-align:center;width:min(100%,420px)}
+.reward{font-size:50px;margin:4px}.scorebig{font-size:44px;font-weight:950}
+.challenge{font-size:12px;color:var(--muted);margin-top:4px}
+#toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,20px);opacity:0;background:#fff;color:#170d2d;padding:10px 15px;border-radius:99px;font-weight:800;transition:.2s;z-index:30;pointer-events:none}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+.mini-target{font-size:34px;margin:8px}.mini-options{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:15px}
+.mini-options button{font-size:28px;padding:12px}.progress{font-size:13px;color:var(--muted)}
+.shop-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.08)}
+.badge{padding:6px 9px;border-radius:10px;background:rgba(255,255,255,.09);font-size:12px}
+@media(max-width:380px){#board{gap:4px}.gem{font-size:21px;border-radius:10px}.app{padding:10px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="logo">💎 GEM <span>RUSH</span></div>
+  <div class="stats"><div class="pill">⭐ <b id="stars">0</b></div><div class="pill">🏆 <b id="best">0</b></div></div>
+</header>
+
+<section id="home" class="screen active">
+  <div class="card hero">
+    <div class="crystal">💎</div>
+    <h1>Gem Rush</h1>
+    <p>Match three or more sparkling gems, build combos, and unlock chaotic mini-games.</p>
+    <button class="bigbtn" onclick="startGame()">PLAY CLASSIC</button>
+  </div>
+  <div class="menu-grid">
+    <button class="card mode secondary" onclick="startTimed()"><b>⚡ Blitz</b><small>45 seconds. Huge combos. How high can you score?</small></button>
+    <button class="card mode secondary" onclick="startMini()"><b>🔮 Gem Guess</b><small>Remember the crystal and pick it before time runs out.</small></button>
+    <button class="card mode secondary" onclick="openShop()"><b>✨ Gem Vault</b><small>Spend stars on boosts and fancy treasures.</small></button>
+    <button class="card mode secondary" onclick="showHow()"><b>❔ How to Play</b><small>Swipe or tap two adjacent gems to swap them.</small></button>
+  </div>
+</section>
+
+<section id="game" class="screen">
+  <div class="topbar"><button class="secondary" onclick="goHome()">← Menu</button><b id="modeName">Classic</b><button class="secondary" onclick="useBomb()">💣 <span id="bombs">0</span></button></div>
+  <div class="card">
+    <div class="info"><span>Score <b id="score">0</b></span><span>Moves <b id="moves">0</b></span><span>Combo x<b id="combo">1</b></span></div>
+    <div class="timerbar" id="timerWrap"><div id="timerFill"></div></div>
+    <div class="combo" id="comboText"></div>
+    <div id="board"></div>
+  </div>
+</section>
+
+<section id="mini" class="screen">
+  <div class="topbar"><button class="secondary" onclick="goHome()">← Menu</button><b>Gem Guess</b><span class="progress" id="miniProgress">1/5</span></div>
+  <div class="card" style="text-align:center">
+    <p>Memorize this gem!</p><div class="mini-target" id="miniTarget">💎</div>
+    <p id="miniPrompt">Get ready...</p>
+    <div class="mini-options" id="miniOptions"></div>
+  </div>
+</section>
+
+<section id="shop" class="screen">
+  <div class="topbar"><button class="secondary" onclick="goHome()">← Menu</button><b>Gem Vault</b><span>⭐ <b id="shopStars">0</b></span></div>
+  <div class="card">
+    <h2>Treasure Shop</h2>
+    <div class="shop-row"><span>💣 Bomb +1<br><small class="badge">Clears a 3×3 area</small></span><button onclick="buyBomb()">50 ⭐</button></div>
+    <div class="shop-row"><span>⏳ Time Crystal<br><small class="badge">+8 sec in Blitz</small></span><button onclick="buyTime()">75 ⭐</button></div>
+    <div class="shop-row"><span>🔥 Combo Charm<br><small class="badge">Start next game at x2</small></span><button onclick="buyCharm()">100 ⭐</button></div>
+  </div>
+</section>
+</div>
+
+<div class="overlay" id="overlay"><div class="card modal">
+  <div class="reward" id="resultGem">💎</div><h2 id="resultTitle">Round Complete!</h2>
+  <div class="scorebig" id="resultScore">0</div><p id="resultText"></p>
+  <button class="bigbtn" onclick="restart()">PLAY AGAIN</button>
+  <button class="bigbtn secondary" onclick="goHome()">BACK TO MENU</button>
+</div></div>
+<div id="toast"></div>
+
+<script>
+const GEMS=['💎','🔮','💚','❤️','💛','🩵','💜','🧡'];
+const ROWS=8,COLS=6;
+let board=[],selected=null,score=0,moves=0,combo=1,stars=Number(localStorage.gemStars||0),best=Number(localStorage.gemBest||0);
+let mode='classic',timeLeft=0,timer=null,bombs=Number(localStorage.gemBombs||0),charm=false;
+const $=id=>document.getElementById(id);
+
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$(id).classList.add('active')}
+function updateStats(){ $('stars').textContent=stars;$('best').textContent=best;$('shopStars').textContent=stars;$('bombs').textContent=bombs;localStorage.gemStars=stars;localStorage.gemBombs=bombs}
+function goHome(){clearInterval(timer);$('overlay').classList.remove('show');show('home');updateStats()}
+function toast(t){$('toast').textContent=t;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),1100)}
+function randGem(){return Math.floor(Math.random()*GEMS.length)}
+function idx(r,c){return r*COLS+c}
+function neighbors(a,b){let ar=Math.floor(a/COLS),ac=a%COLS,br=Math.floor(b/COLS),bc=b%COLS;return Math.abs(ar-br)+Math.abs(ac-bc)===1}
+function makeBoard(){
+ board=Array.from({length:ROWS*COLS},()=>randGem());
+ // avoid starting matches
+ for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+   let i=idx(r,c);
+   while((c>=2&&board[i]===board[idx(r,c-1)]&&board[i]===board[idx(r,c-2)])||(r>=2&&board[i]===board[idx(r-1,c)]&&board[i]===board[idx(r-2,c)])) board[i]=randGem();
+ }
+}
+function render(){
+ const el=$('board');el.innerHTML='';
+ board.forEach((g,i)=>{const b=document.createElement('button');b.className='gem';b.textContent=GEMS[g];b.dataset.i=i;b.onclick=()=>tapGem(i);el.appendChild(b)});
+}
+function tapGem(i){
+ if(selected===null){selected=i;document.querySelector(`[data-i="${i}"]`).classList.add('selected');return}
+ if(i===selected){document.querySelector(`[data-i="${i}"]`).classList.remove('selected');selected=null;return}
+ if(!neighbors(i,selected)){document.querySelectorAll('.selected').forEach(x=>x.classList.remove('selected'));selected=i;document.querySelector(`[data-i="${i}"]`).classList.add('selected');return}
+ swap(selected,i);selected=null;moves++;$('moves').textContent=moves;
+ let matches=findMatches();
+ if(!matches.length){swap(selected??i,i); /* corrected below */ swap(i, lastSwapA); toast('No match!'); combo=1; return}
+ resolve(matches);
+}
+let lastSwapA=0,lastSwapB=0;
+function swap(a,b){lastSwapA=a;lastSwapB=b;[board[a],board[b]]=[board[b],board[a]];render()}
+function findMatches(){
+ const set=new Set();
+ for(let r=0;r<ROWS;r++){let run=1;for(let c=1;c<=COLS;c++){if(c<COLS&&board[idx(r,c)]===board[idx(r,c-1)])run++;else{if(run>=3)for(let k=c-run;k<c;k++)set.add(idx(r,k));run=1}}}
+ for(let c=0;c<COLS;c++){let run=1;for(let r=1;r<=ROWS;r++){if(r<ROWS&&board[idx(r,c)]===board[idx(r-1,c)])run++;else{if(run>=3)for(let k=r-run;k<r;k++)set.add(idx(k,c));run=1}}}
+ return [...set];
+}
+async function resolve(matches){
+ let chain=0;
+ while(matches.length){
+   chain++;combo=charm&&chain===1?2:Math.min(1+chain,9);
+   score += matches.length*10*combo + (matches.length>=5?50:0);
+   stars += Math.max(1,Math.floor(matches.length/2));
+   $('score').textContent=score;$('combo').textContent=combo;$('comboText').textContent=chain>1?`✨ CHAIN x${chain}!`:matches.length>=5?'💥 MEGA MATCH!':'';
+   matches.forEach(i=>document.querySelector(`[data-i="${i}"]`)?.classList.add('pop'));
+   await new Promise(r=>setTimeout(r,130));
+   const hit=new Set(matches);for(let c=0;c<COLS;c++){let vals=[];for(let r=ROWS-1;r>=0;r--){let v=board[idx(r,c)];if(!hit.has(idx(r,c)))vals.push(v)}for(let r=ROWS-1;r>=0;r--)board[idx(r,c)]=vals[ROWS-1-r]??randGem()}
+   render();matches=findMatches();
+ }
+ combo=1;charm=false;updateStats();
+ if(mode==='classic'&&moves>=35){endGame('Moves complete!')}
+}
+function startGame(){start('classic',0)}
+function startTimed(){start('blitz',45)}
+function start(modeName,t){mode=modeName;score=0;moves=0;combo=1;selected=null;makeBoard();show('game');$('modeName').textContent=modeName==='blitz'?'⚡ Blitz':'💎 Classic';$('score').textContent=0;$('moves').textContent=0;$('combo').textContent=1;$('timerWrap').style.display=modeName==='blitz'?'block':'none';render();clearInterval(timer);
+ if(modeName==='blitz'){timeLeft=t+(localStorage.gemTime?8:0);localStorage.gemTime='';updateTimer();timer=setInterval(()=>{timeLeft-=.1;updateTimer();if(timeLeft<=0)endGame('Time is up!')},100)}
+}
+function updateTimer(){$('timerFill').style.width=Math.max(0,timeLeft/45*100)+'%'}
+function endGame(msg){clearInterval(timer);if(score>best){best=score;localStorage.gemBest=best}stars+=Math.floor(score/100);updateStats();$('resultScore').textContent=score;$('resultText').textContent=msg+' You earned bonus stars for your haul.';$('overlay').classList.add('show')}
+function restart(){$('overlay').classList.remove('show');mode==='blitz'?startTimed():startGame()}
+function useBomb(){
+ if(!bombs){toast('No bombs — visit the Gem Vault!');return}
+ if(selected===null){toast('Select a gem first!');return}
+ let r=Math.floor(selected/COLS),c=selected%COLS,hit=[];
+ for(let rr=Math.max(0,r-1);rr<=Math.min(ROWS-1,r+1);rr++)for(let cc=Math.max(0,c-1);cc<=Math.min(COLS-1,c+1);cc++)hit.push(idx(rr,cc));
+ bombs--;score+=hit.length*5;hit.forEach(i=>board[i]=randGem());render();updateStats();toast('💥 Boom! 3×3 cleared!');selected=null;
+}
+function openShop(){show('shop');updateStats()}
+function buyBomb(){if(stars<50)return toast('Need more stars!');stars-=50;bombs++;updateStats();toast('💣 Bomb added!')}
+function buyTime(){if(stars<75)return toast('Need more stars!');stars-=75;localStorage.gemTime='yes';updateStats();toast('⏳ Time Crystal ready!')}
+function buyCharm(){if(stars<100)return toast('Need more stars!');stars-=100;charm=true;updateStats();toast('🔥 Combo Charm activated!')}
+
+function startMini(){
+ show('mini');let round=0,correct=0;let target;
+ function next(){
+   round++;$('miniProgress').textContent=round+'/5';target=randGem();$('miniTarget').textContent=GEMS[target];$('miniPrompt').textContent='Memorize...';
+   $('miniOptions').innerHTML='';
+   setTimeout(()=>{ $('miniTarget').textContent='❔';$('miniPrompt').textContent='Which gem was it?';
+     let opts=[target];while(opts.length<4){let x=randGem();if(!opts.includes(x))opts.push(x)}opts.sort(()=>Math.random()-.5);
+     opts.forEach(x=>{let b=document.createElement('button');b.textContent=GEMS[x];b.onclick=()=>{if(x===target){correct++;toast('✨ Correct!')}else toast('Not quite!');if(round<5)setTimeout(next,350);else{stars+=correct*15;updateStats();$('miniProgress').textContent='Done!';$('miniPrompt').textContent=`You got ${correct}/5 correct — +${correct*15} ⭐`;$('miniOptions').innerHTML='<button style="grid-column:1/-1" onclick="startMini()">PLAY AGAIN</button>'}}; $('miniOptions').appendChild(b)})
+   },900)
+ }
+ next();
+}
+function showHow(){alert('MATCH 3 OR MORE\\n\\nTap one gem, then tap an adjacent gem to swap them. Match 3+ to score. Bigger matches and chain reactions earn more.\\n\\nClassic ends after 35 moves. Blitz gives you 45 seconds. Use 💣 bombs from the Gem Vault for tricky boards!')}
+updateStats();
+</script>
+</body>
+</html>
