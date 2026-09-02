@@ -1,0 +1,1514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Facet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap">
+<style>
+  /* ===================================================================
+     FACET — a jeweler's game of matched stones
+     Single committed visual world: the vault at night. No light theme.
+     =================================================================== */
+
+  :root{
+    /* ground + surfaces */
+    --ink: #100c1a;
+    --velvet: #1c1530;
+    --velvet-2: #251c3f;
+    --velvet-3: #2f2450;
+    --hairline: rgba(216, 178, 107, 0.22);
+    --hairline-bright: rgba(244, 212, 147, 0.55);
+
+    /* precious metal */
+    --gold: #d8b26b;
+    --gold-bright: #f4d493;
+    --gold-dim: #8a734a;
+
+    /* text */
+    --ivory: #f4efe4;
+    --muted: #b6acc7;
+    --faint: #6f6485;
+
+    /* gemstones */
+    --ruby: #e8425f;
+    --ruby-deep: #a01f3a;
+    --sapphire: #3e7ce0;
+    --sapphire-deep: #1e4699;
+    --emerald: #2fbf8f;
+    --emerald-deep: #157a58;
+    --amethyst: #a768e0;
+    --amethyst-deep: #6a3399;
+    --topaz: #f2b441;
+    --topaz-deep: #b9791a;
+    --aqua: #45d6c4;
+    --aqua-deep: #1f9485;
+
+    /* semantic */
+    --good: #52c98a;
+    --bad: #e8586b;
+
+    --radius-s: 10px;
+    --radius-m: 16px;
+    --radius-l: 22px;
+    --shadow-deep: 0 18px 40px rgba(6, 4, 12, 0.55);
+    --shadow-soft: 0 8px 20px rgba(6, 4, 12, 0.35);
+  }
+
+  *{ box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body{ margin:0; padding:0; }
+  body{
+    background: var(--ink);
+    color: var(--ivory);
+    font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{ animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+  }
+
+  h1,h2,h3{ font-family: 'Cinzel', Georgia, 'Times New Roman', serif; font-weight: 600; margin: 0; text-wrap: balance; }
+
+  button{ font-family: inherit; }
+
+  .num{ font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+
+  /* ---------- page frame ---------- */
+  .page{
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 18px 12px 40px;
+    position: relative;
+  }
+
+  /* ambient vault backdrop, visible behind the phone canvas on wide viewers */
+  .page::before{
+    content:"";
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(60% 50% at 50% 0%, rgba(216,178,107,0.10), transparent 60%),
+      radial-gradient(80% 60% at 50% 100%, rgba(167,104,224,0.10), transparent 60%),
+      var(--ink);
+    z-index: -2;
+  }
+
+  #sparkle{
+    position: fixed; inset: 0;
+    width: 100%; height: 100%;
+    z-index: -1;
+    opacity: 0.7;
+    pointer-events: none;
+  }
+
+  .stage{
+    width: 100%;
+    max-width: 430px;
+    background: linear-gradient(180deg, var(--velvet) 0%, var(--ink) 100%);
+    border-radius: 28px;
+    border: 1px solid var(--hairline);
+    box-shadow: var(--shadow-deep), inset 0 1px 0 rgba(255,255,255,0.04);
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 700px;
+  }
+
+  /* ---------- header chrome ---------- */
+  .chrome{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 14px 14px;
+    border-bottom: 1px solid var(--hairline);
+    background: linear-gradient(180deg, rgba(216,178,107,0.06), transparent);
+    position: relative;
+  }
+  .chrome-title{
+    flex: 1;
+    min-width: 0;
+    text-align: center;
+  }
+  .chrome-title h1{
+    font-size: 15px;
+    letter-spacing: 0.16em;
+    color: var(--gold-bright);
+    text-transform: uppercase;
+  }
+  .chrome-title p{
+    margin: 3px 0 0;
+    font-size: 11px;
+    color: var(--faint);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .chrome-actions{ display:flex; gap:6px; }
+  .icon-btn{
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    border: 1px solid var(--hairline);
+    background: rgba(255,255,255,0.03);
+    color: var(--gold-bright);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s, border-color .15s;
+    flex-shrink: 0;
+  }
+  .icon-btn:hover{ background: rgba(216,178,107,0.12); border-color: var(--hairline-bright); }
+  .icon-btn:active{ transform: scale(0.92); }
+  .icon-btn[hidden]{ display:none; }
+  .icon-btn.is-muted{ color: var(--faint); }
+
+  /* ---------- screens ---------- */
+  #screens{
+    position: relative;
+    flex: 1;
+    display: flex;
+    min-height: 0;
+  }
+  .screen{
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    padding: 18px 16px 22px;
+    overflow-y: auto;
+  }
+  .screen.active{ display: flex; animation: screen-in 0.32s ease both; }
+  @keyframes screen-in{
+    from{ opacity: 0; transform: translateY(8px); }
+    to{ opacity: 1; transform: translateY(0); }
+  }
+
+  /* ---------- hub ---------- */
+  .hub-intro{ text-align:center; margin-bottom: 18px; }
+  .hub-crest{
+    width: 56px; height: 56px;
+    margin: 0 auto 10px;
+    position: relative;
+  }
+  .hub-intro h2{
+    font-size: 26px;
+    letter-spacing: 0.14em;
+    color: var(--ivory);
+    text-transform: uppercase;
+  }
+  .hub-intro p{
+    margin: 6px 0 0;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .tray-list{
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .tray{
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px;
+    border-radius: var(--radius-l);
+    background: linear-gradient(155deg, var(--velvet-2), var(--velvet));
+    border: 1px solid var(--hairline);
+    box-shadow: var(--shadow-soft);
+    cursor: pointer;
+    text-align: left;
+    color: inherit;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.15s, border-color 0.15s;
+  }
+  .tray::after{
+    content:"";
+    position:absolute; inset:0;
+    background: linear-gradient(120deg, transparent 40%, rgba(244,212,147,0.08) 50%, transparent 60%);
+    transform: translateX(-120%);
+  }
+  .tray:active{ transform: scale(0.98); }
+  .tray:hover{ border-color: var(--hairline-bright); }
+  .tray:hover::after{ transform: translateX(120%); transition: transform 0.7s ease; }
+
+  .tray-gem{
+    width: 54px; height: 54px;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: var(--radius-m);
+    background: radial-gradient(circle at 35% 25%, rgba(255,255,255,0.10), transparent 55%), var(--ink);
+    border: 1px solid var(--hairline);
+  }
+  .tray-body{ flex: 1; min-width: 0; }
+  .tray-eyebrow{
+    font-size: 9.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin: 0 0 3px;
+  }
+  .tray-body h3{ font-size: 17px; color: var(--ivory); letter-spacing: 0.02em; }
+  .tray-body p{ margin: 4px 0 0; font-size: 12px; color: var(--muted); line-height: 1.4; }
+  .tray-meta{
+    flex-shrink: 0;
+    text-align: right;
+    font-size: 10px;
+    color: var(--faint);
+    letter-spacing: 0.04em;
+  }
+  .tray-meta strong{
+    display: block;
+    font-size: 15px;
+    color: var(--gold-bright);
+    font-family: 'Cinzel', serif;
+    font-weight: 600;
+  }
+
+  .hub-footnote{
+    margin-top: 20px;
+    text-align: center;
+    font-size: 10.5px;
+    color: var(--faint);
+    letter-spacing: 0.03em;
+  }
+  .hub-footnote button{
+    background:none; border:none; color: var(--gold); cursor:pointer; text-decoration: underline;
+    font-size: inherit; padding: 0;
+  }
+
+  /* ---------- gem shapes (the cutting system) ---------- */
+  .gem{
+    position: relative;
+    display: inline-block;
+  }
+  .gem-shape{
+    position: relative;
+    width: 100%; height: 100%;
+    display: block;
+    overflow: hidden;
+  }
+  .gem-shape::before{ /* facet shine */
+    content:"";
+    position: absolute; inset: 0;
+    background: linear-gradient(125deg, rgba(255,255,255,0.65) 0%, rgba(255,255,255,0.12) 22%, transparent 40%, transparent 100%);
+    mix-blend-mode: overlay;
+  }
+  .gem-shape::after{ /* rim */
+    content:"";
+    position: absolute; inset: 0;
+    box-shadow: inset 0 0 0 1.5px rgba(255,255,255,0.25);
+  }
+
+  /* round brilliant — ruby */
+  .cut-brilliant{ clip-path: circle(50% at 50% 50%); background: radial-gradient(circle at 32% 28%, #ff8fa1, var(--ruby) 45%, var(--ruby-deep) 100%); }
+  /* emerald cut — sapphire */
+  .cut-emerald{ clip-path: polygon(22% 0%, 78% 0%, 100% 22%, 100% 78%, 78% 100%, 22% 100%, 0% 78%, 0% 22%); background: linear-gradient(150deg, #9cc0ff, var(--sapphire) 45%, var(--sapphire-deep) 100%); }
+  /* marquise cut — emerald */
+  .cut-marquise{ border-radius: 50% 0 50% 0; transform: rotate(45deg); background: radial-gradient(circle at 30% 30%, #8ff5d4, var(--emerald) 50%, var(--emerald-deep) 100%); }
+  /* pear cut — amethyst */
+  .cut-pear{ border-radius: 60% 60% 60% 0%; transform: rotate(-45deg); background: radial-gradient(circle at 35% 30%, #ddb8f7, var(--amethyst) 50%, var(--amethyst-deep) 100%); }
+  /* princess cut — topaz */
+  .cut-princess{ clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); background: linear-gradient(140deg, #ffe4a3, var(--topaz) 50%, var(--topaz-deep) 100%); }
+  /* trillion cut — aquamarine */
+  .cut-trillion{ clip-path: polygon(50% 4%, 96% 96%, 4% 96%); background: linear-gradient(150deg, #b7f5ec, var(--aqua) 50%, var(--aqua-deep) 100%); }
+
+  .gem-tiny{ width: 30px; height: 30px; }
+
+  /* ===================================================================
+     Shared: modal overlay
+     =================================================================== */
+  .modal-overlay{
+    position: absolute; inset: 0;
+    background: rgba(8,5,14,0.72);
+    backdrop-filter: blur(3px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 40;
+    padding: 24px;
+  }
+  .modal-overlay[hidden]{ display: none; }
+  .modal-card{
+    width: 100%;
+    max-width: 340px;
+    background: linear-gradient(160deg, var(--velvet-3), var(--velvet));
+    border: 1px solid var(--hairline-bright);
+    border-radius: var(--radius-l);
+    box-shadow: var(--shadow-deep);
+    padding: 24px 22px 22px;
+    text-align: center;
+    animation: modal-in 0.28s cubic-bezier(.2,.9,.3,1.2) both;
+  }
+  @keyframes modal-in{ from{ opacity:0; transform: scale(0.88) translateY(10px);} to{ opacity:1; transform:none; } }
+  .modal-card h2{ font-size: 20px; letter-spacing: 0.08em; color: var(--gold-bright); text-transform: uppercase; }
+  .modal-card .modal-sub{ margin: 6px 0 16px; font-size: 12.5px; color: var(--muted); line-height:1.5; }
+  .modal-stats{ display:flex; justify-content: center; gap: 22px; margin: 14px 0 18px; }
+  .modal-stats div{ text-align:center; }
+  .modal-stats strong{ display:block; font-size: 22px; color: var(--ivory); font-family:'Cinzel',serif; }
+  .modal-stats span{ font-size: 9.5px; color: var(--faint); letter-spacing:0.1em; text-transform: uppercase; }
+  .stars{ display:flex; justify-content:center; gap:8px; margin: 4px 0 16px; }
+  .stars svg{ width: 34px; height: 34px; }
+
+  .btn{
+    display: inline-flex; align-items:center; justify-content:center; gap:8px;
+    padding: 12px 20px;
+    border-radius: 999px;
+    border: 1px solid var(--hairline-bright);
+    background: linear-gradient(180deg, var(--gold-bright), var(--gold));
+    color: #241a08;
+    font-weight: 700;
+    font-size: 13.5px;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    box-shadow: 0 6px 16px rgba(216,178,107,0.25);
+    transition: transform 0.12s;
+    text-transform: uppercase;
+  }
+  .btn:active{ transform: scale(0.96); }
+  .btn.ghost{
+    background: transparent;
+    color: var(--muted);
+    border-color: var(--hairline);
+    box-shadow: none;
+  }
+  .btn-row{ display:flex; gap:10px; justify-content:center; flex-wrap: wrap; }
+
+  .legend-grid{ display:grid; grid-template-columns: repeat(2,1fr); gap: 12px; text-align:left; margin: 14px 0 4px; }
+  .legend-item{ display:flex; align-items:center; gap:9px; }
+  .legend-item .gem{ width: 26px; height: 26px; flex-shrink:0; }
+  .legend-item div{ min-width:0; }
+  .legend-item strong{ display:block; font-size: 11.5px; color: var(--ivory); }
+  .legend-item span{ font-size: 9.5px; color: var(--faint); }
+
+  /* ===================================================================
+     Game screen shared: sub-header stat bar
+     =================================================================== */
+  .stat-bar{
+    display:flex; justify-content: space-between; align-items:center;
+    padding: 10px 12px;
+    background: rgba(0,0,0,0.18);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-m);
+    margin-bottom: 14px;
+  }
+  .stat{ text-align:center; flex:1; }
+  .stat > span{ display:block; font-size: 9px; letter-spacing:0.1em; text-transform:uppercase; color: var(--faint); }
+  .stat strong{ display:block; font-size: 17px; color: var(--gold-bright); font-family:'Cinzel',serif; margin-top:2px; }
+  .stat-div{ width:1px; align-self:stretch; background: var(--hairline); margin: 0 4px; }
+
+  /* ---------- level select (Setting Stones) ---------- */
+  .level-grid{
+    display:grid; grid-template-columns: repeat(3,1fr); gap:10px;
+    margin-bottom: 6px;
+  }
+  .level-btn{
+    aspect-ratio: 1;
+    border-radius: var(--radius-m);
+    border: 1px solid var(--hairline);
+    background: var(--velvet-2);
+    color: var(--ivory);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap: 4px;
+    cursor:pointer;
+    font-family:'Cinzel',serif;
+  }
+  .level-btn .lv-num{ font-size: 20px; }
+  .level-btn .lv-stars{ display:flex; gap:2px; }
+  .level-btn .lv-stars svg{ width:11px; height:11px; }
+  .level-btn.locked{ opacity: 0.4; cursor: not-allowed; }
+  .level-btn:not(.locked):active{ transform: scale(0.94); }
+
+  /* ---------- Setting Stones board ---------- */
+  .board-wrap{ display:flex; flex-direction:column; align-items:center; }
+  .board{
+    display: grid;
+    gap: 5px;
+    padding: 8px;
+    background: rgba(0,0,0,0.22);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-m);
+    touch-action: none;
+    user-select: none;
+  }
+  .cell{
+    width: 42px; height: 42px;
+    border-radius: 9px;
+    background: rgba(255,255,255,0.02);
+    display:flex; align-items:center; justify-content:center;
+    position: relative;
+  }
+  .cell .gem{
+    width: 33px; height: 33px;
+    cursor: pointer;
+    transition: transform 0.12s;
+    animation: gem-drop 0.28s cubic-bezier(.2,.8,.3,1.2) both;
+  }
+  .cell .gem.selected{ transform: scale(1.16); filter: drop-shadow(0 0 6px var(--gold-bright)); }
+  .cell .gem.matched{ animation: gem-pop 0.32s ease both; }
+  .cell .gem.shake{ animation: gem-shake 0.32s ease; }
+  @keyframes gem-drop{ from{ opacity:0; transform: translateY(-24px) scale(0.7);} to{ opacity:1; transform:none; } }
+  @keyframes gem-pop{ to{ opacity:0; transform: scale(1.6) rotate(20deg);} }
+  @keyframes gem-shake{ 0%,100%{transform:translateX(0);} 25%{transform:translateX(-5px);} 75%{transform:translateX(5px);} }
+
+  /* ---------- Loupe (memory) ---------- */
+  .diff-row{ display:flex; gap:10px; margin-bottom:14px; }
+  .diff-btn{
+    flex:1; padding: 10px; border-radius: var(--radius-m); border:1px solid var(--hairline);
+    background: var(--velvet-2); color: var(--muted); cursor:pointer; font-weight:700; font-size:12px;
+    letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .diff-btn.active{ background: linear-gradient(180deg, var(--gold-bright), var(--gold)); color:#241a08; border-color: transparent; }
+
+  .memory-grid{
+    display:grid;
+    gap: 7px;
+    margin: 0 auto;
+  }
+  .mcard{
+    aspect-ratio: 1;
+    border-radius: 9px;
+    perspective: 600px;
+    cursor: pointer;
+  }
+  .mcard-inner{
+    position: relative; width:100%; height:100%;
+    transform-style: preserve-3d;
+    transition: transform 0.4s cubic-bezier(.3,.7,.3,1.1);
+  }
+  .mcard.flipped .mcard-inner, .mcard.matched .mcard-inner{ transform: rotateY(180deg); }
+  .mcard-face{
+    position:absolute; inset:0;
+    border-radius: 9px;
+    display:flex; align-items:center; justify-content:center;
+    backface-visibility: hidden;
+    border: 1px solid var(--hairline);
+  }
+  .mcard-back{
+    background: linear-gradient(155deg, var(--velvet-3), var(--velvet-2));
+  }
+  .mcard-back::after{
+    content:"◆"; color: var(--gold-dim); font-size: 15px;
+  }
+  .mcard-front{
+    background: var(--ink);
+    transform: rotateY(180deg);
+  }
+  .mcard-front .gem{ width: 62%; height: 62%; }
+  .mcard.matched .mcard-front{ box-shadow: inset 0 0 0 2px var(--gold-bright); }
+  .mcard.matched{ animation: mcard-settle 0.4s ease 0.4s both; }
+  @keyframes mcard-settle{ 0%{filter:brightness(1);} 40%{filter:brightness(1.6);} 100%{filter:brightness(1);} }
+
+  /* ---------- Rapid Appraisal ---------- */
+  .call-panel{
+    display:flex; align-items:center; justify-content:center; gap: 12px;
+    padding: 14px; margin-bottom: 14px;
+    background: rgba(0,0,0,0.2); border:1px solid var(--hairline); border-radius: var(--radius-m);
+  }
+  .call-panel .gem{ width: 40px; height: 40px; }
+  .call-panel .call-text{ font-size: 11px; color: var(--muted); letter-spacing:0.06em; text-transform: uppercase; }
+  .call-panel .call-name{ font-size: 16px; color: var(--gold-bright); font-family:'Cinzel',serif; }
+
+  .timer-track{
+    height: 6px; border-radius: 4px; background: rgba(255,255,255,0.08); overflow:hidden; margin-bottom:14px;
+  }
+  .timer-fill{ height:100%; background: linear-gradient(90deg, var(--gold), var(--gold-bright)); width:100%; transform-origin: left; }
+
+  .appraisal-grid{
+    display:grid; grid-template-columns: repeat(3,1fr); gap: 10px;
+    flex: 1;
+  }
+  .socket{
+    aspect-ratio: 1;
+    border-radius: var(--radius-m);
+    background: rgba(0,0,0,0.22);
+    border: 1px solid var(--hairline);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+  }
+  .socket .gem{ width: 62%; height: 62%; transition: transform 0.1s; }
+  .socket.correct{ animation: socket-good 0.3s ease; }
+  .socket.wrong{ animation: socket-bad 0.3s ease; border-color: var(--bad); }
+  @keyframes socket-good{ 0%{ transform:scale(1);} 50%{ transform:scale(1.12);} 100%{transform:scale(1);} }
+  @keyframes socket-bad{ 0%,100%{ transform:translateX(0);} 30%{transform:translateX(-4px);} 60%{transform:translateX(4px);} }
+
+  .lives-row{ display:flex; gap:6px; align-items:center; justify-content:center; }
+  .life-dot{ width:9px; height:9px; border-radius:50%; background: var(--ruby); box-shadow: 0 0 5px var(--ruby); }
+  .life-dot.spent{ background: rgba(255,255,255,0.1); box-shadow:none; }
+
+  /* small screens */
+  @media (max-width: 380px){
+    .cell{ width: 36px; height: 36px; }
+    .cell .gem{ width: 28px; height: 28px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <canvas id="sparkle"></canvas>
+  <div class="stage" id="stage">
+
+    <header class="chrome">
+      <button class="icon-btn" id="backBtn" hidden aria-label="Back">‹</button>
+      <div class="chrome-title">
+        <h1 id="screenTitle">Facet</h1>
+        <p id="screenSub">a jeweler's game of matched stones</p>
+      </div>
+      <div class="chrome-actions">
+        <button class="icon-btn" id="infoBtn" aria-label="Gem cut legend">i</button>
+        <button class="icon-btn" id="muteBtn" aria-label="Toggle sound">♪</button>
+      </div>
+    </header>
+
+    <main id="screens">
+
+      <!-- ============ HUB ============ -->
+      <section class="screen active" id="screen-hub" data-title="Facet" data-sub="a jeweler's game of matched stones">
+        <div class="hub-intro">
+          <div class="hub-crest">
+            <div class="gem" style="width:56px;height:56px;"><div class="gem-shape cut-brilliant"></div></div>
+          </div>
+          <h2>The Vault</h2>
+          <p>Three tables, three trades. Pick a bench and get to work.</p>
+        </div>
+
+        <div class="tray-list">
+          <button class="tray" data-open="setting">
+            <div class="tray-gem"><div class="gem" style="width:36px;height:36px;"><div class="gem-shape cut-emerald"></div></div></div>
+            <div class="tray-body">
+              <p class="tray-eyebrow">Match &amp; Cascade</p>
+              <h3>Setting Stones</h3>
+              <p>Swap neighboring gems to complete a setting of three or more.</p>
+            </div>
+            <div class="tray-meta" id="meta-setting">Best<strong>—</strong></div>
+          </button>
+
+          <button class="tray" data-open="loupe">
+            <div class="tray-gem"><div class="gem" style="width:36px;height:36px;"><div class="gem-shape cut-pear"></div></div></div>
+            <div class="tray-body">
+              <p class="tray-eyebrow">Memory &amp; Focus</p>
+              <h3>The Loupe</h3>
+              <p>Turn two stones at a time. Remember what you saw, and pair them off.</p>
+            </div>
+            <div class="tray-meta" id="meta-loupe">Best<strong>—</strong></div>
+          </button>
+
+          <button class="tray" data-open="appraisal">
+            <div class="tray-gem"><div class="gem" style="width:36px;height:36px;"><div class="gem-shape cut-trillion"></div></div></div>
+            <div class="tray-body">
+              <p class="tray-eyebrow">Reflex &amp; Nerve</p>
+              <h3>Rapid Appraisal</h3>
+              <p>A client calls a stone. Find it on the tray before the glass runs out.</p>
+            </div>
+            <div class="tray-meta" id="meta-appraisal">Best<strong>—</strong></div>
+          </button>
+        </div>
+
+        <p class="hub-footnote">Six cuts, six stones — <button id="legendLink">learn the cuts</button></p>
+      </section>
+
+      <!-- ============ SETTING STONES (match-3) ============ -->
+      <section class="screen" id="screen-setting" data-title="Setting Stones" data-sub="swap to complete a setting of 3+">
+        <div id="setting-levels">
+          <div class="stat-bar">
+            <div class="stat"><span>Levels Cleared</span><strong id="settingCleared" class="num">0 / 5</strong></div>
+          </div>
+          <div class="level-grid" id="levelGrid"></div>
+          <p class="hub-footnote" style="margin-top:14px;">Clear a bench to unlock the next.</p>
+        </div>
+
+        <div id="setting-play" style="display:none;">
+          <div class="stat-bar">
+            <div class="stat"><span>Score</span><strong id="settingScore" class="num">0</strong></div>
+            <div class="stat-div"></div>
+            <div class="stat"><span>Target</span><strong id="settingTarget" class="num">0</strong></div>
+            <div class="stat-div"></div>
+            <div class="stat"><span>Moves</span><strong id="settingMoves" class="num">0</strong></div>
+          </div>
+          <div class="board-wrap">
+            <div class="board" id="board"></div>
+          </div>
+          <div class="btn-row" style="margin-top:14px;">
+            <button class="btn ghost" id="settingQuit">Leave Bench</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ THE LOUPE (memory) ============ -->
+      <section class="screen" id="screen-loupe" data-title="The Loupe" data-sub="find every matching pair">
+        <div id="loupe-setup">
+          <p class="hub-footnote" style="margin: 0 0 12px; text-align:left;">Choose a tray size.</p>
+          <div class="diff-row">
+            <button class="diff-btn active" data-diff="4">Small tray · 8 pairs</button>
+            <button class="diff-btn" data-diff="6">Large tray · 12 pairs</button>
+          </div>
+          <div class="stat-bar">
+            <div class="stat"><span>Best Time</span><strong id="loupeBestTime" class="num">—</strong></div>
+            <div class="stat-div"></div>
+            <div class="stat"><span>Best Moves</span><strong id="loupeBestMoves" class="num">—</strong></div>
+          </div>
+          <div class="btn-row" style="margin-top:16px;"><button class="btn" id="loupeStart">Begin</button></div>
+        </div>
+
+        <div id="loupe-play" style="display:none;">
+          <div class="stat-bar">
+            <div class="stat"><span>Time</span><strong id="loupeTime" class="num">0:00</strong></div>
+            <div class="stat-div"></div>
+            <div class="stat"><span>Moves</span><strong id="loupeMoves" class="num">0</strong></div>
+            <div class="stat-div"></div>
+            <div class="stat"><span>Pairs</span><strong id="loupePairs" class="num">0 / 8</strong></div>
+          </div>
+          <div class="memory-grid" id="memoryGrid"></div>
+          <div class="btn-row" style="margin-top:14px;">
+            <button class="btn ghost" id="loupeQuit">Leave Bench</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ RAPID APPRAISAL (reflex) ============ -->
+      <section class="screen" id="screen-appraisal" data-title="Rapid Appraisal" data-sub="tap the called stone before the glass runs out">
+        <div id="appraisal-setup">
+          <p class="hub-footnote" style="margin:0 0 14px; text-align:left; line-height:1.6;">A client names a stone. Tap it on the tray before the sand runs out. Three misses and the shift ends.</p>
+          <div class="stat-bar">
+            <div class="stat"><span>High Score</span><strong id="appraisalHigh" class="num">0</strong></div>
+          </div>
+          <div class="btn-row" style="margin-top:16px;"><button class="btn" id="appraisalStart">Open the Case</button></div>
+        </div>
+
+        <div id="appraisal-play" style="display:none;">
+          <div class="stat-bar">
+            <div class="stat"><span>Score</span><strong id="appraisalScore" class="num">0</strong></div>
+            <div class="stat-div"></div>
+            <div class="stat"><span>Streak</span><strong id="appraisalStreak" class="num">0</strong></div>
+            <div class="stat-div"></div>
+            <div class="stat"><span>Lives</span><strong><span class="lives-row" id="livesRow"></span></strong></div>
+          </div>
+          <div class="call-panel">
+            <div class="gem" id="callGem" style="width:40px;height:40px;"><div class="gem-shape"></div></div>
+            <div>
+              <p class="call-text">Client is asking for</p>
+              <p class="call-name" id="callName">—</p>
+            </div>
+          </div>
+          <div class="timer-track"><div class="timer-fill" id="timerFill"></div></div>
+          <div class="appraisal-grid" id="appraisalGrid"></div>
+          <div class="btn-row" style="margin-top:14px;">
+            <button class="btn ghost" id="appraisalQuit">End Shift</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- ============ RESULT MODAL (shared) ============ -->
+    <div class="modal-overlay" id="resultModal" hidden>
+      <div class="modal-card">
+        <h2 id="resultTitle">Well Set</h2>
+        <p class="modal-sub" id="resultSub"></p>
+        <div class="stars" id="resultStars"></div>
+        <div class="modal-stats" id="resultStats"></div>
+        <div class="btn-row">
+          <button class="btn ghost" id="resultSecondary">Back to Vault</button>
+          <button class="btn" id="resultPrimary">Try Again</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ LEGEND MODAL ============ -->
+    <div class="modal-overlay" id="legendModal" hidden>
+      <div class="modal-card" style="max-width:380px;">
+        <h2>The Six Stones</h2>
+        <p class="modal-sub">Every stone has its own cut — read the shape, not just the color.</p>
+        <div class="legend-grid" id="legendGrid"></div>
+        <div class="btn-row" style="margin-top:6px;"><button class="btn" id="legendClose">Close</button></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// =====================================================================
+// FACET — application script
+// =====================================================================
+
+/* ---------------------------- utilities ---------------------------- */
+const STORAGE_PREFIX = 'facet_';
+
+function loadJSON(key, fallback){
+  try{
+    const raw = localStorage.getItem(STORAGE_PREFIX + key);
+    return raw ? JSON.parse(raw) : fallback;
+  }catch(e){ return fallback; }
+}
+function saveJSON(key, val){
+  try{ localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(val)); }catch(e){ /* best effort */ }
+}
+function wait(ms){ return new Promise(res => setTimeout(res, ms)); }
+function shuffle(arr){
+  for(let i = arr.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+function formatTime(seconds){
+  seconds = Math.max(0, Math.round(seconds));
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return m + ':' + String(s).padStart(2, '0');
+}
+
+/* ------------------------------ gems -------------------------------- */
+const GEM_TYPES = [
+  { id: 'ruby',      name: 'Ruby',        cut: 'Round Brilliant', cls: 'cut-brilliant' },
+  { id: 'sapphire',  name: 'Sapphire',    cut: 'Emerald Cut',     cls: 'cut-emerald'   },
+  { id: 'emerald',   name: 'Emerald',     cut: 'Marquise Cut',    cls: 'cut-marquise'  },
+  { id: 'amethyst',  name: 'Amethyst',    cut: 'Pear Cut',        cls: 'cut-pear'      },
+  { id: 'topaz',     name: 'Topaz',       cut: 'Princess Cut',    cls: 'cut-princess'  },
+  { id: 'aqua',      name: 'Aquamarine',  cut: 'Trillion Cut',    cls: 'cut-trillion'  },
+];
+
+function makeGemEl(typeIndex, extraClass){
+  const type = GEM_TYPES[typeIndex];
+  const wrap = document.createElement('div');
+  wrap.className = 'gem' + (extraClass ? ' ' + extraClass : '');
+  wrap.dataset.type = typeIndex;
+  const shape = document.createElement('div');
+  shape.className = 'gem-shape ' + type.cls;
+  wrap.appendChild(shape);
+  return wrap;
+}
+
+function starSVG(filled){
+  return `<svg viewBox="0 0 24 24" fill="${filled ? 'var(--gold-bright)' : 'none'}" stroke="${filled ? 'var(--gold-bright)' : 'var(--gold-dim)'}" stroke-width="1.4"><path stroke-linejoin="round" d="M12 2.5l2.9 6.4 6.9.6-5.2 4.6 1.6 6.9L12 17.6 5.8 21l1.6-6.9-5.2-4.6 6.9-.6L12 2.5z"/></svg>`;
+}
+function starsSVG(filled, total){
+  let out = '';
+  for(let i = 0; i < total; i++) out += starSVG(i < filled);
+  return out;
+}
+
+/* ------------------------------ sound -------------------------------- */
+const Sound = (function(){
+  let ctx = null;
+  let muted = loadJSON('muted', false);
+
+  function ensureCtx(){
+    if(!ctx){
+      try{ ctx = new (window.AudioContext || window.webkitAudioContext)(); }
+      catch(e){ ctx = null; }
+    }
+    if(ctx && ctx.state === 'suspended'){ ctx.resume().catch(()=>{}); }
+    return ctx;
+  }
+  function tone(freq, dur, type, gainVal, delay){
+    if(muted) return;
+    const c = ensureCtx();
+    if(!c) return;
+    const t0 = c.currentTime + (delay || 0);
+    const osc = c.createOscillator();
+    const gain = c.createGain();
+    osc.type = type || 'sine';
+    osc.frequency.setValueAtTime(freq, t0);
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.linearRampToValueAtTime(gainVal || 0.12, t0 + 0.012);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    osc.connect(gain);
+    gain.connect(c.destination);
+    osc.start(t0);
+    osc.stop(t0 + dur + 0.03);
+  }
+  return {
+    isMuted(){ return muted; },
+    toggle(){ muted = !muted; saveJSON('muted', muted); ensureCtx(); return muted; },
+    unlock(){ ensureCtx(); },
+    click(){ tone(520, 0.05, 'sine', 0.05); },
+    select(){ tone(440, 0.06, 'sine', 0.07); },
+    swap(){ tone(320, 0.09, 'sine', 0.08); },
+    invalid(){ tone(150, 0.16, 'sawtooth', 0.07); },
+    match(combo){ tone(520 + Math.min(combo, 6) * 55, 0.17, 'triangle', 0.13); },
+    flip(){ tone(430, 0.07, 'sine', 0.08); },
+    pairGood(){ tone(660, 0.16, 'triangle', 0.13); tone(880, 0.18, 'triangle', 0.1, 0.09); },
+    pairBad(){ tone(190, 0.18, 'sine', 0.08); },
+    tapGood(){ tone(720, 0.1, 'triangle', 0.12); },
+    tapBad(){ tone(120, 0.22, 'sawtooth', 0.09); },
+    win(){ [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.22, 'triangle', 0.12, i * 0.09)); },
+    lose(){ [420, 320, 220].forEach((f, i) => tone(f, 0.26, 'sine', 0.09, i * 0.12)); },
+  };
+})();
+
+/* --------------------------- ambient sparkle -------------------------- */
+(function(){
+  const canvas = document.getElementById('sparkle');
+  const ctx = canvas.getContext('2d');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let w = 0, h = 0, particles = [];
+
+  function resize(){
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+  }
+  function makeParticles(){
+    const count = Math.min(70, Math.max(18, Math.floor((w * h) / 24000)));
+    particles = Array.from({ length: count }, () => ({
+      x: Math.random() * w,
+      y: Math.random() * h,
+      r: Math.random() * 1.5 + 0.4,
+      speed: Math.random() * 0.22 + 0.04,
+      phase: Math.random() * Math.PI * 2,
+      hue: Math.random() < 0.55 ? '216,178,107' : '167,104,224',
+    }));
+  }
+  function frame(t){
+    ctx.clearRect(0, 0, w, h);
+    particles.forEach(p => {
+      const twinkle = Math.max(0, 0.32 + 0.4 * Math.sin(t / 900 + p.phase));
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${p.hue},${twinkle})`;
+      ctx.fill();
+      p.y -= p.speed;
+      if(p.y < -4){ p.y = h + 4; p.x = Math.random() * w; }
+    });
+    if(!reduceMotion) requestAnimationFrame(frame);
+  }
+  window.addEventListener('resize', () => { resize(); makeParticles(); });
+  resize(); makeParticles();
+  requestAnimationFrame(frame);
+  if(reduceMotion){ ctx.clearRect(0,0,w,h); particles.forEach(p=>{ ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fillStyle=`rgba(${p.hue},0.4)`; ctx.fill(); }); }
+})();
+
+/* ---------------------------- shared chrome ---------------------------- */
+function showScreen(name){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById('screen-' + name);
+  el.classList.add('active');
+  document.getElementById('screenTitle').textContent = el.dataset.title;
+  document.getElementById('screenSub').textContent = el.dataset.sub;
+  document.getElementById('backBtn').hidden = (name === 'hub');
+}
+function currentScreenName(){
+  const active = document.querySelector('.screen.active');
+  return active ? active.id.replace('screen-', '') : 'hub';
+}
+function openGame(name){
+  Sound.select();
+  showScreen(name);
+  MODULES[name].enter();
+}
+function goHub(){
+  const cur = currentScreenName();
+  if(cur !== 'hub' && MODULES[cur] && MODULES[cur].exitPlay) MODULES[cur].exitPlay();
+  refreshHubMeta();
+  showScreen('hub');
+}
+function showResult(opts){
+  document.getElementById('resultTitle').textContent = opts.title;
+  document.getElementById('resultSub').textContent = opts.sub;
+  const starsEl = document.getElementById('resultStars');
+  if(opts.stars === null || opts.stars === undefined){
+    starsEl.style.display = 'none';
+  } else {
+    starsEl.style.display = 'flex';
+    starsEl.innerHTML = starsSVG(opts.stars, 3);
+  }
+  document.getElementById('resultStats').innerHTML = opts.stats.map(s =>
+    `<div><strong class="num">${s.value}</strong><span>${s.label}</span></div>`
+  ).join('');
+  const primaryBtn = document.getElementById('resultPrimary');
+  const secondaryBtn = document.getElementById('resultSecondary');
+  primaryBtn.textContent = opts.primaryLabel;
+  secondaryBtn.textContent = opts.secondaryLabel;
+  primaryBtn.onclick = () => { hideModal('resultModal'); opts.onPrimary(); };
+  secondaryBtn.onclick = () => { hideModal('resultModal'); opts.onSecondary(); };
+  document.getElementById('resultModal').hidden = false;
+}
+function hideModal(id){ document.getElementById(id).hidden = true; }
+
+function renderLegend(){
+  document.getElementById('legendGrid').innerHTML = GEM_TYPES.map(g => `
+    <div class="legend-item">
+      <div class="gem"><div class="gem-shape ${g.cls}"></div></div>
+      <div><strong>${g.name}</strong><span>${g.cut}</span></div>
+    </div>
+  `).join('');
+}
+
+function refreshHubMeta(){
+  const sp = loadJSON('setting_progress', { cleared: 0, stars: {} });
+  const totalStars = Object.values(sp.stars || {}).reduce((a, b) => a + b, 0);
+  document.querySelector('#meta-setting strong').textContent = sp.cleared > 0 ? `${sp.cleared}/5  ★${totalStars}` : '—';
+
+  const bestSmall = loadJSON('loupe_best_4', null);
+  const bestLarge = loadJSON('loupe_best_6', null);
+  let loupeLabel = '—';
+  if(bestSmall && bestLarge) loupeLabel = formatTime(Math.min(bestSmall.time, bestLarge.time));
+  else if(bestSmall) loupeLabel = formatTime(bestSmall.time);
+  else if(bestLarge) loupeLabel = formatTime(bestLarge.time);
+  document.querySelector('#meta-loupe strong').textContent = loupeLabel;
+
+  const highScore = loadJSON('appraisal_high', 0);
+  document.querySelector('#meta-appraisal strong').textContent = highScore > 0 ? highScore : '—';
+}
+
+/* ============================================================
+   SETTING STONES — match-3
+   ============================================================ */
+const Setting = (function(){
+  const ROWS = 7, COLS = 7, TYPES = GEM_TYPES.length;
+  const LEVELS = [
+    { target: 400,  moves: 16 },
+    { target: 750,  moves: 16 },
+    { target: 1150, moves: 15 },
+    { target: 1650, moves: 14 },
+    { target: 2250, moves: 13 },
+  ];
+
+  let grid = [];
+  let level = 0;
+  let score = 0, movesLeft = 0, target = 0;
+  let selected = null;
+  let busy = false;
+  let progress = loadJSON('setting_progress', { cleared: 0, stars: {} });
+
+  function randType(){ return Math.floor(Math.random() * TYPES); }
+
+  function buildGrid(){
+    grid = [];
+    for(let r = 0; r < ROWS; r++){
+      grid.push([]);
+      for(let c = 0; c < COLS; c++){
+        let t;
+        do{ t = randType(); }
+        while(
+          (c >= 2 && grid[r][c-1] === t && grid[r][c-2] === t) ||
+          (r >= 2 && grid[r-1][c] === t && grid[r-2][c] === t)
+        );
+        grid[r].push(t);
+      }
+    }
+  }
+
+  function findMatches(){
+    const matched = new Set();
+    for(let r = 0; r < ROWS; r++){
+      let runStart = 0;
+      for(let c = 1; c <= COLS; c++){
+        if(c < COLS && grid[r][c] === grid[r][runStart]){ continue; }
+        if(c - runStart >= 3){ for(let k = runStart; k < c; k++) matched.add(r + ',' + k); }
+        runStart = c;
+      }
+    }
+    for(let c = 0; c < COLS; c++){
+      let runStart = 0;
+      for(let r = 1; r <= ROWS; r++){
+        if(r < ROWS && grid[r][c] === grid[runStart][c]){ continue; }
+        if(r - runStart >= 3){ for(let k = runStart; k < r; k++) matched.add(k + ',' + c); }
+        runStart = r;
+      }
+    }
+    return matched;
+  }
+
+  function collapseAndRefill(){
+    for(let c = 0; c < COLS; c++){
+      let pointer = ROWS - 1;
+      for(let r = ROWS - 1; r >= 0; r--){
+        if(grid[r][c] !== -1){
+          grid[pointer][c] = grid[r][c];
+          if(pointer !== r) grid[r][c] = -1;
+          pointer--;
+        }
+      }
+      for(let r = pointer; r >= 0; r--){ grid[r][c] = randType(); }
+    }
+  }
+
+  function renderBoard(){
+    const boardEl = document.getElementById('board');
+    boardEl.style.gridTemplateColumns = `repeat(${COLS}, 1fr)`;
+    boardEl.innerHTML = '';
+    for(let r = 0; r < ROWS; r++){
+      for(let c = 0; c < COLS; c++){
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.dataset.r = r; cell.dataset.c = c;
+        const t = grid[r][c];
+        if(t >= 0){
+          const gemEl = makeGemEl(t, '');
+          if(selected && selected.r === r && selected.c === c) gemEl.classList.add('selected');
+          gemEl.addEventListener('click', () => onCellClick(r, c));
+          cell.appendChild(gemEl);
+        }
+        boardEl.appendChild(cell);
+      }
+    }
+  }
+
+  function markMatchedCells(matched){
+    matched.forEach(key => {
+      const [r, c] = key.split(',').map(Number);
+      const el = document.querySelector(`#board .cell[data-r="${r}"][data-c="${c}"] .gem`);
+      if(el) el.classList.add('matched');
+    });
+  }
+  function markShake(a, b){
+    [a, b].forEach(p => {
+      const el = document.querySelector(`#board .cell[data-r="${p.r}"][data-c="${p.c}"] .gem`);
+      if(el) el.classList.add('shake');
+    });
+  }
+  function swapGridValues(a, b){
+    const t = grid[a.r][a.c];
+    grid[a.r][a.c] = grid[b.r][b.c];
+    grid[b.r][b.c] = t;
+  }
+  function isAdjacent(a, b){
+    return (a.r === b.r && Math.abs(a.c - b.c) === 1) || (a.c === b.c && Math.abs(a.r - b.r) === 1);
+  }
+
+  async function resolveMatches(){
+    let combo = 0;
+    while(true){
+      const matched = findMatches();
+      if(matched.size === 0) break;
+      combo++;
+      markMatchedCells(matched);
+      Sound.match(combo);
+      await wait(240);
+      matched.forEach(key => {
+        const [r, c] = key.split(',').map(Number);
+        grid[r][c] = -1;
+      });
+      score += matched.size * 10 * combo;
+      updateStatBar();
+      collapseAndRefill();
+      renderBoard();
+      await wait(180);
+    }
+  }
+
+  function updateStatBar(){
+    document.getElementById('settingScore').textContent = score;
+    document.getElementById('settingMoves').textContent = movesLeft;
+  }
+
+  async function onCellClick(r, c){
+    if(busy) return;
+    if(!selected){ selected = { r, c }; Sound.select(); renderBoard(); return; }
+    if(selected.r === r && selected.c === c){ selected = null; renderBoard(); return; }
+    if(isAdjacent(selected, { r, c })){
+      const a = selected, b = { r, c };
+      selected = null;
+      busy = true;
+      swapGridValues(a, b);
+      renderBoard();
+      await wait(150);
+      const matched = findMatches();
+      if(matched.size === 0){
+        Sound.invalid();
+        markShake(a, b);
+        await wait(260);
+        swapGridValues(a, b);
+        renderBoard();
+        busy = false;
+        return;
+      }
+      Sound.swap();
+      movesLeft--;
+      updateStatBar();
+      await resolveMatches();
+      renderBoard();
+      busy = false;
+      checkLevelEnd();
+    } else {
+      selected = { r, c };
+      Sound.select();
+      renderBoard();
+    }
+  }
+
+  function checkLevelEnd(){
+    if(score >= target){
+      const stars = score >= target * 1.6 ? 3 : score >= target * 1.3 ? 2 : 1;
+      finishLevel(true, stars);
+    } else if(movesLeft <= 0){
+      finishLevel(false, 0);
+    }
+  }
+
+  function finishLevel(won, stars){
+    Sound[won ? 'win' : 'lose']();
+    if(won){
+      progress.stars[level] = Math.max(progress.stars[level] || 0, stars);
+      progress.cleared = Math.max(progress.cleared, level + 1);
+      saveJSON('setting_progress', progress);
+    }
+    const hasNext = level < LEVELS.length - 1;
+    showResult({
+      title: won ? 'Well Set' : 'Bench Closed',
+      sub: won
+        ? `Setting complete — ${score} points against a target of ${target}.`
+        : `Out of moves. You reached ${score} of ${target} needed.`,
+      stars: won ? stars : 0,
+      stats: [ { label: 'Score', value: score }, { label: 'Target', value: target } ],
+      primaryLabel: won && hasNext ? 'Next Bench' : 'Retry',
+      onPrimary: () => { if(won && hasNext) startLevel(level + 1); else startLevel(level); },
+      secondaryLabel: 'Back to Vault',
+      onSecondary: () => { backToLevels(); goHub(); },
+    });
+  }
+
+  function renderLevelGrid(){
+    const gridEl = document.getElementById('levelGrid');
+    gridEl.innerHTML = '';
+    LEVELS.forEach((lv, i) => {
+      const locked = i > progress.cleared;
+      const btn = document.createElement('button');
+      btn.className = 'level-btn' + (locked ? ' locked' : '');
+      const stars = progress.stars[i] || 0;
+      btn.innerHTML = `<span class="lv-num">${i + 1}</span><span class="lv-stars">${starsSVG(stars, 3)}</span>`;
+      if(!locked) btn.addEventListener('click', () => { Sound.select(); startLevel(i); });
+      gridEl.appendChild(btn);
+    });
+    document.getElementById('settingCleared').textContent = `${progress.cleared} / ${LEVELS.length}`;
+  }
+
+  function startLevel(i){
+    level = i;
+    target = LEVELS[i].target;
+    movesLeft = LEVELS[i].moves;
+    score = 0;
+    selected = null;
+    busy = false;
+    buildGrid();
+    document.getElementById('setting-levels').style.display = 'none';
+    document.getElementById('setting-play').style.display = 'block';
+    document.getElementById('settingTarget').textContent = target;
+    updateStatBar();
+    renderBoard();
+  }
+
+  function backToLevels(){
+    document.getElementById('setting-play').style.display = 'none';
+    document.getElementById('setting-levels').style.display = 'block';
+    renderLevelGrid();
+  }
+
+  function enter(){
+    backToLevels();
+  }
+
+  document.getElementById('settingQuit').addEventListener('click', () => { Sound.click(); backToLevels(); });
+
+  return { enter, exitPlay: backToLevels };
+})();
+
+/* ============================================================
+   THE LOUPE — memory pairs
+   ============================================================ */
+const Loupe = (function(){
+  const TYPES = GEM_TYPES.length;
+  let deck = [];
+  let flipped = [];
+  let matchedCount = 0;
+  let moves = 0;
+  let numPairs = 8;
+  let diffKey = '4';
+  let timerId = null, startTime = 0, elapsed = 0;
+  let lockInput = false;
+
+  function buildDeck(pairs){
+    const values = [];
+    for(let i = 0; i < pairs; i++){ const t = i % TYPES; values.push(t, t); }
+    return shuffle(values);
+  }
+
+  function refreshBestLabels(){
+    const best = loadJSON('loupe_best_' + diffKey, null);
+    document.getElementById('loupeBestTime').textContent = best ? formatTime(best.time) : '—';
+    document.getElementById('loupeBestMoves').textContent = best ? best.moves : '—';
+  }
+
+  function setDiff(key){
+    diffKey = key;
+    document.querySelectorAll('.diff-btn').forEach(b => b.classList.toggle('active', b.dataset.diff === key));
+    refreshBestLabels();
+  }
+
+  function tick(){
+    elapsed = (Date.now() - startTime) / 1000;
+    document.getElementById('loupeTime').textContent = formatTime(elapsed);
+  }
+  function updateStats(){
+    document.getElementById('loupeMoves').textContent = moves;
+    document.getElementById('loupePairs').textContent = `${matchedCount} / ${numPairs}`;
+  }
+
+  function renderGrid(){
+    const el = document.getElementById('memoryGrid');
+    el.style.gridTemplateColumns = 'repeat(4, 1fr)';
+    el.innerHTML = '';
+    deck.forEach((type, idx) => {
+      const card = document.createElement('div');
+      card.className = 'mcard';
+      card.dataset.idx = idx;
+      card.innerHTML = `<div class="mcard-inner">
+        <div class="mcard-face mcard-back"></div>
+        <div class="mcard-face mcard-front"></div>
+      </div>`;
+      card.querySelector('.mcard-front').appendChild(makeGemEl(type, ''));
+      card.addEventListener('click', () => onCardClick(idx));
+      el.appendChild(card);
+    });
+  }
+
+  function onCardClick(idx){
+    if(lockInput) return;
+    const cardEl = document.querySelector(`.mcard[data-idx="${idx}"]`);
+    if(!cardEl || cardEl.classList.contains('flipped') || cardEl.classList.contains('matched')) return;
+    if(flipped.length >= 2) return;
+    cardEl.classList.add('flipped');
+    Sound.flip();
+    flipped.push(idx);
+    if(flipped.length === 2){
+      moves++; updateStats();
+      lockInput = true;
+      const [i1, i2] = flipped;
+      if(deck[i1] === deck[i2]){
+        setTimeout(() => {
+          document.querySelector(`.mcard[data-idx="${i1}"]`).classList.add('matched');
+          document.querySelector(`.mcard[data-idx="${i2}"]`).classList.add('matched');
+          Sound.pairGood();
+          matchedCount++;
+          updateStats();
+          flipped = [];
+          lockInput = false;
+          if(matchedCount === numPairs) finish();
+        }, 360);
+      } else {
+        Sound.pairBad();
+        setTimeout(() => {
+          const e1 = document.querySelector(`.mcard[data-idx="${i1}"]`);
+          const e2 = document.querySelector(`.mcard[data-idx="${i2}"]`);
+          if(e1) e1.classList.remove('flipped');
+          if(e2) e2.classList.remove('flipped');
+          flipped = [];
+          lockInput = false;
+        }, 700);
+      }
+    }
+  }
+
+  function start(){
+    numPairs = diffKey === '4' ? 8 : 12;
+    deck = buildDeck(numPairs);
+    flipped = []; matchedCount = 0; moves = 0; elapsed = 0; lockInput = false;
+    document.getElementById('loupe-setup').style.display = 'none';
+    document.getElementById('loupe-play').style.display = 'block';
+    updateStats();
+    renderGrid();
+    document.getElementById('loupeTime').textContent = '0:00';
+    clearInterval(timerId);
+    startTime = Date.now();
+    timerId = setInterval(tick, 250);
+  }
+
+  function finish(){
+    clearInterval(timerId);
+    Sound.win();
+    const best = loadJSON('loupe_best_' + diffKey, null);
+    let improved = false;
+    if(!best || elapsed < best.time || (elapsed === best.time && moves < best.moves)){
+      saveJSON('loupe_best_' + diffKey, { time: elapsed, moves });
+      improved = true;
+    }
+    showResult({
+      title: 'Every Stone Paired',
+      sub: `Cleared the tray in ${formatTime(elapsed)} across ${moves} turns.${improved ? ' New best!' : ''}`,
+      stars: null,
+      stats: [ { label: 'Time', value: formatTime(elapsed) }, { label: 'Moves', value: moves } ],
+      primaryLabel: 'Again',
+      onPrimary: () => start(),
+      secondaryLabel: 'Back to Vault',
+      onSecondary: () => { quit(); goHub(); },
+    });
+  }
+
+  function quit(){
+    clearInterval(timerId);
+    document.getElementById('loupe-play').style.display = 'none';
+    document.getElementById('loupe-setup').style.display = 'block';
+    refreshBestLabels();
+  }
+
+  function enter(){
+    quit();
+  }
+
+  document.querySelectorAll('.diff-btn').forEach(b => b.addEventListener('click', () => { Sound.click(); setDiff(b.dataset.diff); }));
+  document.getElementById('loupeStart').addEventListener('click', () => { Sound.click(); start(); });
+  document.getElementById('loupeQuit').addEventListener('click', () => { Sound.click(); quit(); });
+
+  return { enter, exitPlay: quit };
+})();
+
+/* ============================================================
+   RAPID APPRAISAL — reflex
+   ============================================================ */
+const Appraisal = (function(){
+  const TYPES = GEM_TYPES.length;
+  let score = 0, streak = 0, lives = 3, running = false;
+  let roundTimer = null, roundDuration = 2300;
+  let targetType = 0;
+
+  function renderLives(){
+    const row = document.getElementById('livesRow');
+    row.innerHTML = '';
+    for(let i = 0; i < 3; i++){
+      const dot = document.createElement('span');
+      dot.className = 'life-dot' + (i >= lives ? ' spent' : '');
+      row.appendChild(dot);
+    }
+  }
+  function updateStats(){
+    document.getElementById('appraisalScore').textContent = score;
+    document.getElementById('appraisalStreak').textContent = streak;
+  }
+  function renderCallPanel(){
+    const host = document.getElementById('callGem');
+    host.innerHTML = '';
+    host.appendChild(makeGemEl(targetType, ''));
+    document.getElementById('callName').textContent = GEM_TYPES[targetType].name;
+  }
+  function renderGrid(slots, correctSlot){
+    const el = document.getElementById('appraisalGrid');
+    el.innerHTML = '';
+    slots.forEach((t, i) => {
+      const socket = document.createElement('div');
+      socket.className = 'socket';
+      socket.appendChild(makeGemEl(t, ''));
+      socket.addEventListener('click', () => onTap(i === correctSlot, socket));
+      el.appendChild(socket);
+    });
+  }
+  function startTimer(){
+    clearTimeout(roundTimer);
+    const fill = document.getElementById('timerFill');
+    fill.style.transition = 'none';
+    fill.style.transform = 'scaleX(1)';
+    // force reflow so the next transition actually animates
+    void fill.offsetWidth;
+    requestAnimationFrame(() => {
+      fill.style.transition = `transform ${roundDuration}ms linear`;
+      fill.style.transform = 'scaleX(0)';
+    });
+    roundTimer = setTimeout(() => onTap(false, null), roundDuration);
+  }
+  function nextRound(){
+    if(!running) return;
+    targetType = Math.floor(Math.random() * TYPES);
+    const correctSlot = Math.floor(Math.random() * 9);
+    const slots = [];
+    for(let i = 0; i < 9; i++){
+      if(i === correctSlot){ slots.push(targetType); continue; }
+      let t;
+      do{ t = Math.floor(Math.random() * TYPES); } while(t === targetType);
+      slots.push(t);
+    }
+    renderCallPanel();
+    renderGrid(slots, correctSlot);
+    roundDuration = Math.max(950, 2300 - score * 30);
+    startTimer();
+  }
+  function onTap(correct, socketEl){
+    if(!running) return;
+    clearTimeout(roundTimer);
+    if(correct){
+      Sound.tapGood();
+      streak++;
+      score += 10 + streak * 2;
+      if(socketEl) socketEl.classList.add('correct');
+      updateStats();
+      setTimeout(nextRound, 240);
+    } else {
+      Sound.tapBad();
+      streak = 0;
+      lives--;
+      if(socketEl) socketEl.classList.add('wrong');
+      renderLives();
+      updateStats();
+      if(lives <= 0){ setTimeout(finish, 380); }
+      else { setTimeout(nextRound, 420); }
+    }
+  }
+  function start(){
+    score = 0; streak = 0; lives = 3; running = true;
+    document.getElementById('appraisal-setup').style.display = 'none';
+    document.getElementById('appraisal-play').style.display = 'block';
+    renderLives();
+    updateStats();
+    nextRound();
+  }
+  function finish(){
+    running = false;
+    clearTimeout(roundTimer);
+    Sound.lose();
+    const best = loadJSON('appraisal_high', 0);
+    const improved = score > best;
+    if(improved) saveJSON('appraisal_high', score);
+    showResult({
+      title: 'Shift Over',
+      sub: `You appraised ${score} points before the third miss.${improved ? ' New house record!' : ''}`,
+      stars: null,
+      stats: [ { label: 'Score', value: score }, { label: 'Best', value: Math.max(score, best) } ],
+      primaryLabel: 'Again',
+      onPrimary: () => start(),
+      secondaryLabel: 'Back to Vault',
+      onSecondary: () => { quit(); goHub(); },
+    });
+  }
+  function quit(){
+    running = false;
+    clearTimeout(roundTimer);
+    document.getElementById('appraisal-play').style.display = 'none';
+    document.getElementById('appraisal-setup').style.display = 'block';
+    document.getElementById('appraisalHigh').textContent = loadJSON('appraisal_high', 0);
+  }
+  function enter(){
+    quit();
+  }
+
+  document.getElementById('appraisalStart').addEventListener('click', () => { Sound.click(); start(); });
+  document.getElementById('appraisalQuit').addEventListener('click', () => { Sound.click(); quit(); });
+
+  return { enter, exitPlay: quit };
+})();
+
+/* ------------------------------- init --------------------------------- */
+const MODULES = { setting: Setting, loupe: Loupe, appraisal: Appraisal };
+
+document.querySelectorAll('.tray').forEach(t => t.addEventListener('click', () => openGame(t.dataset.open)));
+document.getElementById('backBtn').addEventListener('click', goHub);
+document.getElementById('infoBtn').addEventListener('click', () => { Sound.click(); document.getElementById('legendModal').hidden = false; });
+document.getElementById('legendLink').addEventListener('click', () => { Sound.click(); document.getElementById('legendModal').hidden = false; });
+document.getElementById('legendClose').addEventListener('click', () => { Sound.click(); hideModal('legendModal'); });
+
+const muteBtn = document.getElementById('muteBtn');
+function syncMuteBtn(){
+  muteBtn.textContent = Sound.isMuted() ? '✕' : '♪';
+  muteBtn.classList.toggle('is-muted', Sound.isMuted());
+}
+muteBtn.addEventListener('click', () => { Sound.toggle(); syncMuteBtn(); });
+
+renderLegend();
+syncMuteBtn();
+refreshHubMeta();
+</script>
+</body>
+</html>
